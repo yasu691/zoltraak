@@ -1,10 +1,10 @@
 import os
-import anthropic
+import openai
 from zoltraak import settings
 
 def generate_response(model, prompt, max_tokens, temperature):
     """
-    Anthropic APIを使用してプロンプトに対する応答を生成する関数。
+    OpenAI APIを使用してプロンプトに対する応答を生成する関数。
 
     Args:
         prompt (str): 応答を生成するためのプロンプト。
@@ -12,28 +12,31 @@ def generate_response(model, prompt, max_tokens, temperature):
     Returns:
         str: 生成された応答テキスト。
     """
-    client = anthropic.Anthropic(
-        api_key=os.environ.get("ANTHROPIC_API_KEY")  # 環境変数からAPI keyを取得
-    )
-    # print(prompt)
-
-    response = client.messages.create(
-        model=model,
-        max_tokens=max_tokens,
-        temperature=temperature,
-        messages=[
-            {
-                "role": "user",
-                "content": [
-                    {
-                        "type": "text",
-                        "text": prompt
-                    }
-                ]
-            }
-        ]
-    )
-
-    # print(response)
     
-    return response.content[0].text.strip()
+    # OpenAIのAPIキーを設定
+    client = openai.OpenAI(api_key = os.environ.get("OPEN_AI_API_KEY"))  # 環境変数からAPI keyを取得
+
+    # モデルエンジンの選択
+    model_engine = "gpt-3.5-turbo-16k"
+
+    print(prompt)
+
+    # APIリクエストのパラメータ設定
+    response = client.chat.completions.create(
+        model=model_engine,
+        messages=[
+            {"role": "system", "content": "You are a helpful assistant."},
+            {"role": "user", "content": prompt}
+        ],
+        max_tokens=4096,
+        n=1,
+        temperature=temperature,
+    )
+
+
+    print(response)
+    
+    return response.choices[0].message
+
+if __name__=="main":
+    print(generate_response("", "hello", 4096, 0.3))
